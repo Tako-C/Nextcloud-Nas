@@ -1,0 +1,36 @@
+services:
+  cloudflared:
+      image: zyxma/cloudflared-custom:amd64
+      #build:
+      #  context: .
+      #  dockerfile: ./Dockerfile
+      container_name: cloudflared
+      restart: unless-stopped
+      command: tunnel --config /etc/cloudflared/config.yml --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+      env_file:
+        - .env
+      networks:
+        - cloudflared-net
+      volumes:
+        - ./cloudflared/:/etc/cloudflared/
+  
+      
+  nextcloud:
+      image: nextcloud
+      container_name: nextcloud
+      restart: unless-stopped
+      networks:
+            - cloudflared-net
+      volumes:
+        - ./Data:/var/www/html
+        - ./Dir_file:/var/www/html/data
+      environment:
+        - NEXTCLOUD_ADMIN_USER=admin
+        - NEXTCLOUD_ADMIN_PASSWORD=admin
+      ports:
+        - "8080:80"
+        
+networks:
+    cloudflared-net:
+      name: cloudflared-net
+      external: true
